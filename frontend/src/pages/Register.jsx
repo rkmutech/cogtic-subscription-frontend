@@ -17,7 +17,10 @@ export default function Register() {
     try {
       await register(f.nameName, f.email, f.password);
     } catch (err) {
-      setError(err.response?.data?.detail || "Could not create your account. Please try again.");
+      setError(
+        err.response?.data?.detail ||
+          "Could not create your account. Please try again.",
+      );
     }
   };
 
@@ -26,16 +29,43 @@ export default function Register() {
       <form onSubmit={submit}>
         <h2>Create your account</h2>
         <p className="muted">
-          Already have an account? <Link className="link" to="/login" style={{ textDecoration: "none" }}>Log in</Link>
+          Already have an account?{" "}
+          <Link className="link" to="/login" style={{ textDecoration: "none" }}>
+            Log in
+          </Link>
         </p>
         <label htmlFor="nameName"> name</label>
-        <input id="nameName" value={f.nameName} onChange={set("nameName")} autoComplete="organization" required />
+        <input
+          id="nameName"
+          value={f.nameName}
+          onChange={set("nameName")}
+          autoComplete="organization"
+          required
+        />
         <label htmlFor="email">Email</label>
-        <input id="email" type="email" value={f.email} onChange={set("email")} autoComplete="email" />
+        <input
+          id="email"
+          type="email"
+          value={f.email}
+          onChange={set("email")}
+          autoComplete="email"
+        />
         <label htmlFor="pw">Password</label>
-        <input id="pw" type="password" value={f.password} onChange={set("password")} autoComplete="new-password" />
-        {error && <div className="err" role="alert">{error}</div>}
-        <button className="btn full" disabled={!f.nameName.trim()}>Register</button>
+        <input
+          id="pw"
+          type="password"
+          value={f.password}
+          onChange={set("password")}
+          autoComplete="new-password"
+        />
+        {error && (
+          <div className="err" role="alert">
+            {error}
+          </div>
+        )}
+        <button className="btn full" disabled={!f.nameName.trim()}>
+          Register
+        </button>
       </form>
     </AuthLayout>
   );

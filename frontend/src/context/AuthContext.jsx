@@ -44,15 +44,18 @@ export function AuthProvider({ children }) {
     setUser(nextUser);
     return nextUser;
   }
+
   async function register(name, email, password) {
     await authApi.register({ name, email, password });
     return login(email, password);
   }
+
   function logout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
   }
+
   async function update(patch) {
     if (patch.name !== undefined) {
       const nextUser = normalizeUser(await authApi.updateName(patch.name));
@@ -60,6 +63,7 @@ export function AuthProvider({ children }) {
       setUser(nextUser);
     }
   }
+  
   async function buy(planId) {
     const nextUser = normalizeUser(await authApi.updatePlan(planId));
     localStorage.setItem("user", JSON.stringify(nextUser));

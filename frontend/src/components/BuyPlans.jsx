@@ -4,6 +4,7 @@ export default function BuyPlans({ plans, current, onBuy }) {
   const [pick, setPick] = useState(null);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
   async function confirm() {
     setSaving(true);
     setError("");
@@ -18,6 +19,7 @@ export default function BuyPlans({ plans, current, onBuy }) {
       setSaving(false);
     }
   }
+  
   return (
     <>
       <div className="plans">

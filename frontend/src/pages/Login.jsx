@@ -26,15 +26,37 @@ export default function Login() {
       <form onSubmit={submit}>
         <h2>Log in to Cogtic</h2>
         <p className="muted">
-          New here? <Link className="link" to="/register" style={{ textDecoration: "none" }}>Register</Link>
+          New here?
+          <Link
+            className="link"
+            to="/register"
+            style={{ textDecoration: "none" }}
+          >
+            Register
+          </Link>
         </p>
         <label htmlFor="email">Email</label>
-        <input id="email" type="email" value={f.email} onChange={set("email")} autoComplete="email" />
+        <input
+          id="email"
+          type="email"
+          value={f.email}
+          onChange={set("email")}
+          autoComplete="email"
+        />
         <label htmlFor="pw">Password</label>
-        <input id="pw" type="password" value={f.password} onChange={set("password")} autoComplete="current-password" />
-        {error && <div className="err" role="alert">{error}</div>}
+        <input
+          id="pw"
+          type="password"
+          value={f.password}
+          onChange={set("password")}
+          autoComplete="current-password"
+        />
+        {error && (
+          <div className="err" role="alert">
+            {error}
+          </div>
+        )}
         <button className="btn full">Log in</button>
-        {/* <div className="hint">Demo admin: admin@cogtic.com / admin123</div> */}
       </form>
     </AuthLayout>
   );
