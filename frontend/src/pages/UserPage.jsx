@@ -1,38 +1,40 @@
-import { useState } from "react";
-import { PLANS, useAuth } from "../lib";
+﻿import { useEffect, useState } from "react";
+import { getPlans } from "../api/billing";
+import { useAuth } from "../context/useAuth";
 import BuyPlans from "../components/BuyPlans";
 
-/* ---------- User page ---------- */
 export default function UserPage() {
-  const { user, buy: onBuy, update } = useAuth();
-  const onSave = (name) => update({ name });
-  const [name, setName] = useState(user.name);
+  const { user, buy, update } = useAuth();
+  const [name, setName] = useState(user.name || "");
+  const [plans, setPlans] = useState([]);
   const [saved, setSaved] = useState(false);
-  const plan = PLANS.find((p) => p.id === user.plan);
-  return (
-    <>
-      <h2>Your account</h2>
-      <p className="muted">Manage your details and subscription.</p>
-      <div className="card" style={{ marginTop: 24, maxWidth: 480 }}>
-        <label htmlFor="pn" style={{ marginTop: 0 }}>Full name</label>
-        <input id="pn" value={name} onChange={(e) => { setName(e.target.value); setSaved(false); }} />
-        <label htmlFor="pe">Email</label>
-        <input id="pe" value={user.email} disabled />
-        <div className="row" style={{ marginTop: 16 }}>
-          <span>Member since</span><b>{new Date(user.joined).toLocaleDateString("en-IN")}</b>
-        </div>
-        <div className="row">
-          <span>Plan</span>
-          {plan ? <span className="badge ok">{plan.name} · ₹{plan.price}</span> : <span className="badge">No plan</span>}
-        </div>
-        <button className="btn" style={{ marginTop: 20 }} onClick={() => { onSave(name.trim() || user.name); setSaved(true); }}>
-          Save changes
-        </button>
-        {saved && <span className="muted" style={{ marginLeft: 12 }}>Saved</span>}
-      </div>
-      <h3 style={{ marginTop: 36 }}>{plan ? "Change plan" : "Buy a plan"}</h3>
-      <BuyPlans current={user.plan} onBuy={onBuy} />
-    </>
-  );
+  const [error, setError] = useState("");
+  useEffect(() => {
+    getPlans().then(setPlans).catch((err) => setError(err.message));
+  }, []);
+  async function saveName() {
+    try {
+      await update({ name });
+      setSaved(true);
+      setError("");
+    } catch (err) {
+      setError(err.response?.data?.detail || "Could not save company name.");
+    }
+  }
+  return <>
+    <h2>Your account</h2>
+    <p className="muted">Manage your company details and subscription.</p>
+    <div className="card" style={{ marginTop: 24, maxWidth: 480 }}>
+      <label htmlFor="company-name" style={{ marginTop: 0 }}>Company name</label>
+      <input id="company-name" value={name} onChange={(e) => { setName(e.target.value); setSaved(false); }} />
+      <label htmlFor="account-email">Email</label><input id="account-email" value={user.email} disabled />
+      <div className="row" style={{ marginTop: 16 }}><span>Member since</span><b>{user.joined ? new Date(user.joined).toLocaleDateString("en-IN") : "—"}</b></div>
+      {error && <div className="err" role="alert">{error}</div>}
+      <button className="btn" style={{ marginTop: 20 }} onClick={saveName}>Save changes</button>
+      {saved && <span className="muted" style={{ marginLeft: 12 }}>Saved</span>}
+    </div>
+    <h3 style={{ marginTop: 36 }}>{user.planId ? "Change plan" : "Choose a plan"}</h3>
+    <BuyPlans plans={plans} current={user.planId} onBuy={buy} />
+  </>;
 }
 

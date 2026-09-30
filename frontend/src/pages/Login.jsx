@@ -1,6 +1,6 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { useAuth } from "../lib";
+import { useAuth } from "../context/useAuth";
 import AuthLayout from "../components/AuthLayout";
 
 export default function Login() {
@@ -11,10 +11,14 @@ export default function Login() {
 
   if (user) return <Navigate to="/" replace />;
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    const err = login(f.email, f.password);
-    if (err) setError(err);
+    setError("");
+    try {
+      await login(f.email, f.password);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Email or password is incorrect.");
+    }
   };
 
   return (
@@ -30,7 +34,7 @@ export default function Login() {
         <input id="pw" type="password" value={f.password} onChange={set("password")} autoComplete="current-password" />
         {error && <div className="err" role="alert">{error}</div>}
         <button className="btn full">Log in</button>
-        <div className="hint">Demo admin: admin@cogtic.com / admin123</div>
+        {/* <div className="hint">Demo admin: admin@cogtic.com / admin123</div> */}
       </form>
     </AuthLayout>
   );
