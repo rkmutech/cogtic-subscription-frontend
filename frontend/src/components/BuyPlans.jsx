@@ -2,6 +2,7 @@
 
 export default function BuyPlans({ plans, current, onBuy }) {
   const [pick, setPick] = useState(null);
+  const [notice, setNotice] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -32,7 +33,9 @@ export default function BuyPlans({ plans, current, onBuy }) {
             </div>
             <ul>
               <li>
-                {plan.includedRequests.toLocaleString()} included requests
+                {formatIncludedRequests(
+                  plan.includedRequests ?? plan.included_requests,
+                )} included requests
               </li>
               <li>₹{plan.overage_rate} per extra request</li>
             </ul>
@@ -43,6 +46,10 @@ export default function BuyPlans({ plans, current, onBuy }) {
                 className="btn"
                 onClick={() => {
                   setError("");
+                  if (current != null) {
+                    setNotice(true);
+                    return;
+                  }
                   setPick(plan);
                 }}
               >
@@ -55,6 +62,27 @@ export default function BuyPlans({ plans, current, onBuy }) {
       {error && (
         <div className="err" role="alert">
           {error}
+        </div>
+      )}
+      {notice && (
+        <div className="modal" role="presentation">
+          <div
+            className="card plan-notice-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="plan-notice-title"
+          >
+            <h3 id="plan-notice-title" style={{ marginTop: 0 }}>
+              You already have a plan
+            </h3>
+            <p className="muted">
+              Sorry, you can’t buy another plan while your current plan is
+              active. Your current plan will stay unchanged.
+            </p>
+            <button className="btn" onClick={() => setNotice(false)}>
+              OK
+            </button>
+          </div>
         </div>
       )}
       {pick && (
@@ -89,4 +117,10 @@ export default function BuyPlans({ plans, current, onBuy }) {
       )}
     </>
   );
+}
+
+function formatIncludedRequests(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  const count = Number(value);
+  return Number.isFinite(count) ? count.toLocaleString() : "—";
 }

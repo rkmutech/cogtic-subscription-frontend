@@ -33,9 +33,12 @@ export default function Dashboard() {
 
   const plan = plans.find((item) => item.id === user.planId);
   return (
-    <>
-      <h2>Welcome, {(user.name || "there").split(" ")[0]}</h2>
-      <p className="muted">Here is what is happening in your Cogtic account.</p>
+    <div className="user-dashboard">
+      <header className="user-dashboard-hero">
+        <span className="user-dashboard-kicker">ACCOUNT OVERVIEW</span>
+        <h2>Welcome, {(user.name || "there").split(" ")[0]}</h2>
+        <p>Here is what is happening in your Cogtic account.</p>
+      </header>
       {error && (
         <div className="err" role="alert">
           {error}
@@ -43,7 +46,7 @@ export default function Dashboard() {
       )}
       {!plan ? (
         <>
-          <div className="banner">
+          <div className="banner user-no-plan">
             <span>
               <b>No plan is assigned.</b> Choose a plan to continue.
             </span>
@@ -52,16 +55,16 @@ export default function Dashboard() {
         </>
       ) : (
         <>
-          <div className="stats">
-            <div className="card">
+          <div className="stats user-stats">
+            <div className="card user-stat user-stat-purple">
               <span className="muted">Current plan</span>
               <b>{plan.name}</b>
             </div>
-            <div className="card">
+            <div className="card user-stat user-stat-blue">
               <span className="muted">Monthly price</span>
               <b>₹{plan.monthly_price}</b>
             </div>
-            <div className="card">
+            <div className="card user-stat user-stat-teal">
               <span className="muted">Requests this period</span>
               <b>
                 {usage
@@ -69,12 +72,12 @@ export default function Dashboard() {
                   : "Loading…"}
               </b>
             </div>
-            <div className="card">
+            <div className="card user-stat user-stat-orange">
               <span className="muted">Overage</span>
               <b>₹{usage?.overage_cost ?? "—"}</b>
             </div>
           </div>
-          <div className="card" style={{ marginTop: 20 }}>
+          <div className="card user-billing" style={{ marginTop: 20 }}>
             <h3 style={{ marginTop: 0 }}>Billing period</h3>
             <p className="muted">
               {usage
@@ -87,6 +90,6 @@ export default function Dashboard() {
           </div>
         </>
       )}
-    </>
+    </div>
   );
 }

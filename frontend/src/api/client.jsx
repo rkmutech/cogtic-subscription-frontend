@@ -37,6 +37,7 @@ const client = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }),
+  delete: (path) => request(path, { method: "DELETE" }),
 };
 
 export default client;
