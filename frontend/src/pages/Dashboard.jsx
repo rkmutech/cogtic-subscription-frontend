@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from "react";
-import { getMyUsageSummary, getPlans } from "../api/billing";
+import { getMyUsageSummary, getPlans, recordUsage } from "../api/billing";
 import { useAuth } from "../context/useAuth";
 import BuyPlans from "../components/BuyPlans";
 
@@ -8,8 +8,16 @@ export default function Dashboard() {
   const [plans, setPlans] = useState([]);
   const [usage, setUsage] = useState(null);
   const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
+    if (!user?.tenantId) {
+      setPlans([]);
+      setUsage(null);
+      setError("");
+      return;
+    }
+
     let active = true;
     Promise.all([getPlans(), getMyUsageSummary(user.tenantId)])
       .then(([availablePlans, summary]) => {
@@ -29,9 +37,50 @@ export default function Dashboard() {
     return () => {
       active = false;
     };
-  }, [user.tenantId]);
+  }, [user?.tenantId]);
 
-  const plan = plans.find((item) => item.id === user.planId);
+  const usageSummary = usage
+    ? {
+        totalUsage: usage.totalUsage ?? usage.total_usage ?? 0,
+        planLimit: usage.planlimit ?? usage.plan_limit ?? null,
+        remaining: usage.remaining ?? usage.remaining_requests ?? null,
+        overageCost: usage.overageCost ?? usage.overage_cost ?? "—",
+        periodStart: usage.periodStart ?? usage.period_start ?? "",
+        periodEnd: usage.periodEnd ?? usage.period_end ?? "",
+      }
+    : null;
+
+  const planLimitReached =
+    usageSummary &&
+    usageSummary.planLimit != null &&
+    Number(usageSummary.remaining ?? 0) <= 0;
+  const plan = planLimitReached ? null : plans.find((item) => item.id === user.planId);
+
+  async function handleSendRequest() {
+    if (!user?.tenantId) return;
+
+    if (usageSummary && Number(usageSummary.remaining ?? 0) <= 0) {
+      setError("Your plan limit has been reached. Please buy another plan.");
+      return;
+    }
+
+    try {
+      setSending(true);
+      setError("");
+      await recordUsage();
+      const nextSummary = await getMyUsageSummary(user.tenantId);
+      setUsage(nextSummary);
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+          err.message ||
+          "Could not record request.",
+      );
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="user-dashboard">
       <header className="user-dashboard-hero">
@@ -48,10 +97,13 @@ export default function Dashboard() {
         <>
           <div className="banner user-no-plan">
             <span>
-              <b>No plan is assigned.</b> Choose a plan to continue.
+              <b>{planLimitReached ? "Plan limit reached." : "No plan is assigned."}</b>{" "}
+              {planLimitReached
+                ? "Buy another plan to continue."
+                : "Choose a plan to continue."}
             </span>
           </div>
-          <BuyPlans plans={plans} current={user.planId} onBuy={buy} />
+          <BuyPlans plans={plans} current={planLimitReached ? null : user.planId} onBuy={buy} />
         </>
       ) : (
         <>
@@ -67,25 +119,38 @@ export default function Dashboard() {
             <div className="card user-stat user-stat-teal">
               <span className="muted">Requests this period</span>
               <b>
-                {usage
-                  ? String(usage.total_usage) + " / " + usage.plan_limit
+                {usageSummary
+                  ? String(usageSummary.totalUsage) +
+                    " / " +
+                    (usageSummary.planLimit ?? "—")
                   : "Loading…"}
               </b>
             </div>
             <div className="card user-stat user-stat-orange">
               <span className="muted">Overage</span>
-              <b>₹{usage?.overage_cost ?? "—"}</b>
+              <b>₹{usageSummary?.overageCost ?? "—"}</b>
             </div>
           </div>
+
+          <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+            <button
+              className="btn"
+              onClick={handleSendRequest}
+              disabled={sending || !!planLimitReached}
+            >
+              {planLimitReached ? "Plan limit reached" : sending ? "Sending…" : "Send request"}
+            </button>
+          </div>
+
           <div className="card user-billing" style={{ marginTop: 20 }}>
             <h3 style={{ marginTop: 0 }}>Billing period</h3>
             <p className="muted">
-              {usage
-                ? usage.period_start + " to " + usage.period_end
+              {usageSummary
+                ? usageSummary.periodStart + " to " + usageSummary.periodEnd
                 : "Loading usage…"}
             </p>
             <p className="muted">
-              {usage?.remaining ?? "—"} included requests remaining
+              {usageSummary?.remaining ?? "—"} included requests remaining
             </p>
           </div>
         </>

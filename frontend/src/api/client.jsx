@@ -1,11 +1,15 @@
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8007";
+﻿const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8007";
 
 async function request(path, options = {}) {
   const headers = new Headers(options.headers || {});
   const token = localStorage.getItem("token");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const response = await fetch(`${baseURL}${path}`, { ...options, headers });
+  const response = await fetch(`${baseURL}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
   const data =
     response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) {
@@ -41,3 +45,4 @@ const client = {
 };
 
 export default client;
+

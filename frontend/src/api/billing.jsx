@@ -20,6 +20,11 @@ export async function getMyUsageSummary(tenantId) {
   return res.data;
 }
 
+export async function recordUsage() {
+  const res = await client.post("/usage/request");
+  return res.data;
+}
+
 export async function getUsers() {
   const res = await client.get("/admin/users");
   return res.data;
